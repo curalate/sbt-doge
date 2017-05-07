@@ -52,8 +52,13 @@ object Doge {
   def aggregate(state: State): Seq[ProjectRef] =
     {
       val x = Project.extract(state)
-      import x._
-      currentProject.aggregate
+      def aggregate0(pr: ProjectRef, accum: Seq[ProjectRef] = Seq.empty): Seq[ProjectRef] = {
+        Project.getProject(pr, x.structure).map(rp => {
+          rp.aggregate ++ accum
+        }).getOrElse(accum)
+      }
+
+      x.currentProject.aggregate.flatMap(pr => pr +: aggregate0(pr).toList)
     }
   def crossVersions(state: State, proj: ProjectRef): Seq[String] =
     {
